@@ -234,7 +234,7 @@ END_OB_QUERY
       # @see Patriot::JobStore::Base#set_state
       def set_state(update_id, job_ids, new_state)
         raise "jobs are not selected" if job_ids.nil? || job_ids.empty?
-        stmt = "UPDATE jobs SET state = #{new_state} WHERE #{job_ids.map{|jid| "job_id = '#{jid}'"}.join(" OR ")}"
+        stmt = "UPDATE jobs SET state = #{new_state} WHERE #{job_ids.map{|jid| "job_id = '#{Mysql2::Client.escape(jid)}'"}.join(" OR ")}"
         connect(@db_config){|c| c.execute_statement(stmt, :update)}
       end
 
