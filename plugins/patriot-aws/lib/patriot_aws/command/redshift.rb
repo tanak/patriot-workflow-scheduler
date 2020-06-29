@@ -10,6 +10,8 @@ redshift {
   options :with_header => true, :delimiter => "\t"
 }
 
+### access_key_id, secret_access_keyを使用する場合
+
 sample_copy.pbc
 --
 redshift {
@@ -19,8 +21,7 @@ redshift {
   query <<-EOS
     COPY #{schema}.#{table}
     FROM '#{s3_path}'
-    ACCESS_KEY_ID '%{access_key_id}'
-    SECRET_ACCESS_KEY '%{secret_access_key}'
+    CREDENTIALS 'aws_access_key_id=%{access_key_id};aws_secret_access_key=%{secret_access_key}';
     delimiter '\t'
     gzip
   EOS
@@ -37,6 +38,35 @@ port     = 5439
 [s3credentials]
 access_key_id     = #{access_key_id},
 secret_access_key = #{secret_access_key}
+
+### IAM Roleを使用する場合
+
+sample_copy.pbc
+--
+redshift {
+  name "s3_to_redshift"
+  name_suffix _date_
+  inifile '/path/to/redshift.ini'
+  query <<-EOS
+    COPY #{schema}.#{table}
+    FROM '#{s3_path}'
+    CREDENTIALS 'aws_iam_role=%{iam_role}';
+    delimiter '\t'
+    gzip
+  EOS
+}
+
+$ cat redshift.ini
+[connection]
+host     = staging.xxxxxxxxxxxxx.ap-northeast-1.redshift.amazonaws.com
+user     = staging
+password = staging
+dbname   = staging
+port     = 5439
+
+[s3credentials]
+iam_role = #{iam_role},
+
 =end
 
 require 'pg'
